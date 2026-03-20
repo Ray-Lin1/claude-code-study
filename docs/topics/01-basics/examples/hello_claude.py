@@ -176,8 +176,17 @@ class GreetCommand:
         return 0
 
 
-def main() -> None:
-    """主函数"""
+# ============================================================================
+# 入口点
+# ============================================================================
+
+
+def demo_main() -> None:
+    """
+    原有的演示代码（向后兼容）
+
+    运行原有的问候示例，展示基础功能。
+    """
     # 问候 Claude
     message = greet("Claude")
     print(message)
@@ -188,5 +197,32 @@ def main() -> None:
         print(greet(name))
 
 
+def main(argv: list[str] | None = None) -> int:
+    """
+    CLI主入口
+
+    Args:
+        argv: 命令行参数列表，None表示使用sys.argv
+
+    Returns:
+        int: 退出码（0=成功，2=参数错误）
+    """
+    command = GreetCommand()
+
+    # 解析参数
+    try:
+        args = command.parse_args(argv)
+    except SystemExit as e:
+        # argparse处理--help和错误时会调用sys.exit()
+        return 2 if e.code is None else int(e.code)
+
+    # 验证参数
+    if not command.validate_args(args):
+        return 2
+
+    # 执行命令
+    return command.execute(args)
+
+
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
