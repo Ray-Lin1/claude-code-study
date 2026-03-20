@@ -28,7 +28,6 @@ Requirements: Python 3.10+
 
 import argparse
 import sys
-from typing import Literal
 
 # 版本信息
 VERSION = "1.0.0"
@@ -180,7 +179,8 @@ class GreetCommand:
         """
         # 检查是否为演示模式
         if args.demo:
-            return demo_main()  # 直接调用演示模式函数，避免代码重复
+            demo_main()
+            return 0
 
         # 正常模式：根据count重复问候
         for _ in range(args.count):
