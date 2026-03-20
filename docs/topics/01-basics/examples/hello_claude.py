@@ -44,16 +44,87 @@ def get_version() -> str:
     return f"hello-claude {VERSION}"
 
 
+# ============================================================================
+# CLI命令层
+# ============================================================================
+
+
+class GreetCommand:
+    """CLI命令封装类"""
+
+    def __init__(self) -> None:
+        """初始化命令解析器"""
+        self.parser = self._create_parser()
+
+    def _create_parser(self) -> argparse.ArgumentParser:
+        """
+        创建并配置参数解析器
+
+        Returns:
+            配置好的ArgumentParser实例
+        """
+        parser = argparse.ArgumentParser(
+            prog="hello_claude.py", description="Hello Claude - CLI工具示例"
+        )
+
+        # 添加参数选项
+        parser.add_argument(
+            "--name",
+            "-n",
+            type=str,
+            default="Claude",
+            metavar="NAME",
+            help="要问候的名字 (default: Claude)",
+        )
+
+        parser.add_argument(
+            "--greeting",
+            "-g",
+            type=str,
+            default="Hello",
+            metavar="GREETING",
+            help="自定义问候语 (default: Hello)",
+        )
+
+        parser.add_argument(
+            "--count",
+            "-c",
+            type=int,
+            default=1,
+            metavar="COUNT",
+            help="重复次数 (1-10) (default: 1)",
+        )
+
+        parser.add_argument("--demo", "-d", action="store_true", help="运行演示模式")
+
+        parser.add_argument("--version", action="version", version=get_version())
+
+        return parser
+
+    def parse_args(self, argv: list[str] | None = None) -> argparse.Namespace:
+        """
+        解析命令行参数
+
+        Args:
+            argv: 命令行参数列表，None表示使用sys.argv
+
+        Returns:
+            解析后的参数命名空间
+        """
+        return self.parser.parse_args(argv)
+
+
 def main() -> None:
     """主函数"""
-    # 问候 Claude
-    message = greet("Claude")
-    print(message)
+    # 创建 GreetCommand 实例
+    cli = GreetCommand()
 
-    # 可以尝试其他名字
-    other_names = ["World", "Developer", "Learner"]
-    for name in other_names:
-        print(greet(name))
+    # 解析命令行参数
+    args = cli.parse_args()
+
+    # 问候指定的名字（将要在 Task 5 中扩展）
+    message = greet(args.name)
+    print(message)
 
 
 if __name__ == "__main__":
