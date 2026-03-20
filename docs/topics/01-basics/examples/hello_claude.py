@@ -1,14 +1,34 @@
 #!/usr/bin/env python3
 """
-Hello Claude - 第一个示例
+Hello Claude - CLI工具示例
 
-这是一个简单的示例，演示如何使用 Claude Code
-来理解和改进代码。
+这是一个演示如何为Python程序添加CLI接口的示例。
+展示了使用argparse构建命令行工具的最佳实践。
+
+使用示例:
+    基础使用:
+        python hello_claude.py
+
+    自定义参数:
+        python hello_claude.py --name "World" --greeting "Hi"
+
+    重复多次:
+        python hello_claude.py --count 3
+
+    演示模式:
+        python hello_claude.py --demo
+
+    查看帮助:
+        python hello_claude.py --help
+
+Author: Ray & Claude Code
+Version: 1.0.0
+Requirements: Python 3.10+
 """
 
-import argparse  # noqa: F401
-import sys  # noqa: F401
-from typing import Literal  # noqa: F401
+import argparse
+import sys
+from typing import Literal
 
 # 版本信息
 VERSION = "1.0.0"
@@ -123,7 +143,7 @@ class GreetCommand:
         Returns:
             True表示参数有效，False表示无效
         """
-        # 验证name
+        # 验证name参数
         if not args.name or len(args.name.strip()) == 0:
             print("错误: --name 不能为空", file=sys.stderr)
             return False
@@ -132,7 +152,7 @@ class GreetCommand:
             print("错误: --name 最大长度为50字符", file=sys.stderr)
             return False
 
-        # 验证greeting
+        # 验证greeting参数
         if not args.greeting or len(args.greeting.strip()) == 0:
             print("错误: --greeting 不能为空", file=sys.stderr)
             return False
@@ -141,7 +161,7 @@ class GreetCommand:
             print("错误: --greeting 最大长度为20字符", file=sys.stderr)
             return False
 
-        # 验证count
+        # 验证count参数
         if args.count < 1 or args.count > 10:
             print("错误: --count 必须在 1 到 10 之间", file=sys.stderr)
             return False
@@ -160,13 +180,7 @@ class GreetCommand:
         """
         # 检查是否为演示模式
         if args.demo:
-            # 演示模式：问候多个名字（原有行为）
-            message = greet("Claude")
-            print(message)
-            other_names = ["World", "Developer", "Learner"]
-            for name in other_names:
-                print(greet(name))
-            return 0
+            return demo_main()  # 直接调用演示模式函数，避免代码重复
 
         # 正常模式：根据count重复问候
         for _ in range(args.count):
