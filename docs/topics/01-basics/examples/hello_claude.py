@@ -116,15 +116,14 @@ class GreetCommand:
 
 def main() -> None:
     """主函数"""
-    # 创建 GreetCommand 实例
-    cli = GreetCommand()
-
-    # 解析命令行参数
-    args = cli.parse_args()
-
-    # 问候指定的名字（将要在 Task 5 中扩展）
-    message = greet(args.name)
+    # 问候 Claude
+    message = greet("Claude")
     print(message)
+
+    # 可以尝试其他名字
+    other_names = ["World", "Developer", "Learner"]
+    for name in other_names:
+        print(greet(name))
 
 
 if __name__ == "__main__":
