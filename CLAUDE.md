@@ -1,24 +1,91 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+本文件为 Claude Code (claude.ai/code) 提供项目指导。
 
-## Communication Language
+## 沟通语言
 
-**请使用中文回答用户的所有问题和对话。** 当与用户交互时，使用中文进行回复和说明。
+- 请使用中文回答 ray 的所有问题和对话
+- 请以 "ray" 称呼用户
 
-## Project Overview
+## 项目概述
 
-This is a study repository for learning Claude Code (代码仓库是为了记录claude code学习). The repository is newly created and does not yet have any established codebase, build system, or testing framework.
+这是一个用于学习 Claude Code 的 Python 仓库，随学习进度逐步搭建。
 
-## Current State
+## 常用命令
 
-- This is a blank repository with minimal setup
-- No build, test, or lint commands are currently configured
-- The codebase architecture will be developed as learning progresses
+| 命令 | 说明 |
+|------|------|
+| `python -m pytest` | 运行测试 |
+| `black .` | 代码格式化 |
+| `flake8 .` | 代码检查 |
+| `mypy .` | 类型检查 |
+| `isort .` | 导入排序 |
 
-## Notes for Future Development
+## Python代码规范
 
-As this repository grows, this file should be updated with:
-- Build and test commands once a project structure is established
-- Architecture overview when significant code is added
-- Development workflow as it emerges
+### 代码风格（遵循PEP 8）
+
+**缩进与格式**
+- 使用4个空格缩进（不使用Tab）
+- 每行不超过88个字符（Black 默认值）
+- 运算符周围和逗号后使用空格
+
+**命名规范**
+- 变量和函数：`snake_case`
+- 类名：`PascalCase`
+- 常量：`UPPER_CASE`
+- 私有成员：`_leading_underscore`
+
+**导入顺序**
+1. 标准库导入
+2. 第三方库导入
+3. 本地应用/库导入
+- 每组之间用空行分隔，按字母顺序排列
+
+**文档字符串**
+- 模块、类、函数都应有docstring
+- 使用三引号 `"""` 格式
+- 描述功能、参数、返回值和异常
+
+### 编程最佳实践
+
+**类型提示**
+```python
+def greet(name: str) -> str:
+    return f"Hello, {name}"
+```
+
+**上下文管理器**：处理资源时使用 `with` 语句
+
+**异常处理**：指定具体异常类型，避免裸 `except:`
+
+**虚拟环境**：使用venv/virtualenv/conda管理依赖
+
+### 核心设计原则
+
+**DRY原则**
+- 消除重复代码，提取公共函数/方法
+- 使用继承和组合共享代码
+- 配置和数据不应该重复
+- **注意**：避免过度抽象，简单性优先
+
+**KISS原则**
+- 保持代码简单、直接
+- 一个函数只做一件事
+- 优先使用简单解决方案
+- 代码可读性优于巧妙性
+
+### 代码质量工具
+
+- **Black** - 代码格式化
+- **Flake8** - 代码风格检查
+- **mypy** - 静态类型检查
+- **isort** - 导入语句排序
+
+### 其他实践
+
+- 编写单元测试
+- 遵循SOLID原则
+- 使用生成器和迭代器
+- 避免全局变量
+- 使用 `if __name__ == "__main__":` 保护主程序
