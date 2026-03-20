@@ -6,7 +6,7 @@ Hello Claude - 第一个示例
 来理解和改进代码。
 """
 
-import argparse
+import argparse  # noqa: F401
 import sys  # noqa: F401
 from typing import Literal  # noqa: F401
 
@@ -46,18 +46,14 @@ def get_version() -> str:
 
 def main() -> None:
     """主函数"""
-    parser = argparse.ArgumentParser(description="Hello Claude CLI 工具")
-    parser.add_argument("name", nargs="?", default="Claude", help="要问候的名字")
-    parser.add_argument("-g", "--greeting", default="Hello", help="问候语")
-    parser.add_argument("-v", "--version", action="store_true", help="显示版本信息")
+    # 问候 Claude
+    message = greet("Claude")
+    print(message)
 
-    args = parser.parse_args()
-
-    if args.version:
-        print(get_version())
-    else:
-        message = greet(args.name, args.greeting)
-        print(message)
+    # 可以尝试其他名字
+    other_names = ["World", "Developer", "Learner"]
+    for name in other_names:
+        print(greet(name))
 
 
 if __name__ == "__main__":
