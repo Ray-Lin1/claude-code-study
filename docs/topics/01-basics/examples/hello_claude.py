@@ -7,6 +7,8 @@ Hello Claude - 第一个示例
 """
 
 import argparse
+import sys  # noqa: F401
+from typing import Literal  # noqa: F401
 
 # 版本信息
 VERSION = "1.0.0"
