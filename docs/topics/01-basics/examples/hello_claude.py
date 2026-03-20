@@ -148,6 +148,33 @@ class GreetCommand:
 
         return True
 
+    def execute(self, args: argparse.Namespace) -> int:
+        """
+        执行命令
+
+        Args:
+            args: 验证后的参数
+
+        Returns:
+            退出码（0表示成功）
+        """
+        # 检查是否为演示模式
+        if args.demo:
+            # 演示模式：问候多个名字（原有行为）
+            message = greet("Claude")
+            print(message)
+            other_names = ["World", "Developer", "Learner"]
+            for name in other_names:
+                print(greet(name))
+            return 0
+
+        # 正常模式：根据count重复问候
+        for _ in range(args.count):
+            message = greet(args.name, args.greeting)
+            print(message)
+
+        return 0
+
 
 def main() -> None:
     """主函数"""
