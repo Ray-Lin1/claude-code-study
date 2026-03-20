@@ -113,6 +113,41 @@ class GreetCommand:
         """
         return self.parser.parse_args(argv)
 
+    def validate_args(self, args: argparse.Namespace) -> bool:
+        """
+        验证参数有效性
+
+        Args:
+            args: 解析后的参数
+
+        Returns:
+            True表示参数有效，False表示无效
+        """
+        # 验证name
+        if not args.name or len(args.name.strip()) == 0:
+            print("错误: --name 不能为空", file=sys.stderr)
+            return False
+
+        if len(args.name) > 50:
+            print("错误: --name 最大长度为50字符", file=sys.stderr)
+            return False
+
+        # 验证greeting
+        if not args.greeting or len(args.greeting.strip()) == 0:
+            print("错误: --greeting 不能为空", file=sys.stderr)
+            return False
+
+        if len(args.greeting) > 20:
+            print("错误: --greeting 最大长度为20字符", file=sys.stderr)
+            return False
+
+        # 验证count
+        if args.count < 1 or args.count > 10:
+            print("错误: --count 必须在 1 到 10 之间", file=sys.stderr)
+            return False
+
+        return True
+
 
 def main() -> None:
     """主函数"""
