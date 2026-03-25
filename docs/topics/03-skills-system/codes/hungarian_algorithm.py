@@ -31,10 +31,15 @@ class HungarianAlgorithm:
         Args:
             cost_matrix: 成本矩阵(非负数)
                         如果不是方阵,自动填充为方阵
+                        如果是1D数组,转换为单行矩阵
 
         Raises:
             ValueError: 如果矩阵为空或包含负值
         """
+        # 处理1D数组
+        if cost_matrix.ndim == 1:
+            cost_matrix = cost_matrix.reshape(1, -1)
+
         # 输入验证
         if cost_matrix.size == 0:
             raise ValueError("成本矩阵不能为空")
