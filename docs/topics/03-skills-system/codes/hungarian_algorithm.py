@@ -59,13 +59,37 @@ class HungarianAlgorithm:
         """求解最小权匹配
 
         Returns:
-            assignment: 匹配方案数组
-            total_cost: 总成本
+            assignment: 匹配方案数组，assignment[i] 表示第 i 行匹配的列索引
+                       长度等于原始矩阵的行数
+            total_cost: 匹配的总成本
 
         Raises:
             RuntimeError: 如果算法执行失败
         """
-        raise NotImplementedError("Method not implemented yet")
+        # 执行匈牙利算法
+        self._hungarian_solve()
+
+        # 提取原始矩阵行数的匹配
+        original_rows = self.original_shape[0]
+        original_cols = self.original_shape[1]
+
+        assignment = []
+        total_cost = 0.0
+
+        for i in range(1, original_rows + 1):
+            # p[j] = i 表示列 j 匹配行 i
+            # 我们需要找到行 i 匹配的列
+            for j in range(1, self.n + 1):
+                if self.p[j] == i:
+                    if j <= original_cols:
+                        assignment.append(j - 1)  # 转换为 0-based
+                        total_cost += float(self.cost_matrix[i - 1, j - 1])
+                    break
+            else:
+                # 未找到匹配（不应该发生）
+                raise RuntimeError(f"未找到行 {i - 1} 的匹配")
+
+        return np.array(assignment), total_cost
 
     def _pad_to_square(self) -> None:
         """将非方阵填充为方阵
@@ -95,5 +119,69 @@ class HungarianAlgorithm:
         self.cost_matrix = square_matrix
 
     def _hungarian_solve(self) -> None:
-        """执行匈牙利算法核心逻辑"""
-        pass
+        """执行匈牙利算法核心逻辑
+
+        实现标准的 O(n³) 匈牙利算法。
+        使用 1-based 索引以便于实现。
+
+        算法思路：
+        - u[i] 和 v[j] 是行和列的标签
+        - 对于匹配边 (i, j)，满足 u[i] + v[j] = cost[i, j]
+        - 对于所有边，满足 u[i] + v[j] >= cost[i, j]
+        - 通过增广路径不断改进匹配
+        """
+        n = self.n
+        cost = self.cost_matrix
+
+        # 初始化标签和匹配数组（1-based）
+        self.u = np.zeros(n + 1, dtype=cost.dtype)
+        self.v = np.zeros(n + 1, dtype=cost.dtype)
+        self.p = np.zeros(n + 1, dtype=int)  # p[j] = 列 j 匹配的行
+        self.way = np.zeros(n + 1, dtype=int)  # way[j] = 列 j 的前驱列
+
+        # 对每一行寻找增广路径
+        for i in range(1, n + 1):
+            self.p[0] = i
+            j0 = 0
+            minv = np.full(n + 1, np.inf, dtype=cost.dtype)
+            used = np.zeros(n + 1, dtype=bool)
+
+            while True:
+                used[j0] = True
+                i0 = self.p[j0]  # 当前处理的行
+                delta = np.inf
+                j1 = 0
+
+                # 寻找最小松弛量
+                for j in range(1, n + 1):
+                    if not used[j]:
+                        # 当前边 (i0, j) 的松弛量
+                        cur = cost[i0 - 1, j - 1] - self.u[i0] - self.v[j]
+                        if cur < minv[j]:
+                            minv[j] = cur
+                            self.way[j] = j0
+                        if minv[j] < delta:
+                            delta = minv[j]
+                            j1 = j
+
+                # 更新标签
+                for j in range(n + 1):
+                    if used[j]:
+                        self.u[self.p[j]] += delta
+                        self.v[j] -= delta
+                    else:
+                        minv[j] -= delta
+
+                j0 = j1
+
+                # 找到增广路径（到达未匹配的列）
+                if self.p[j0] == 0:
+                    break
+
+            # 更新匹配
+            while True:
+                j1 = self.way[j0]
+                self.p[j0] = self.p[j1]
+                j0 = j1
+                if j0 == 0:
+                    break
