@@ -177,3 +177,124 @@ def test_compute_metrics_total_mismatch():
     metrics = compute_segmentation_metrics(pred, gt)
 
     assert metrics["miou"] == 0.0
+
+
+def test_compute_metrics_with_ignore_index():
+    """测试忽略标签功能"""
+    from metrics import compute_segmentation_metrics
+
+    pred = np.array([[0, 1, -1], [1, 0, 2]])
+    gt = np.array([[0, 1, -1], [1, 0, -1]])
+
+    metrics = compute_segmentation_metrics(pred, gt, ignore_index=-1)
+
+    # -1 位置应该被忽略
+    # 有效的只有前4个元素: [0, 1, 1, 0]
+    assert 0 <= metrics["miou"] <= 1
+
+
+def test_compute_metrics_multiclass():
+    """测试多类别情况（5类）"""
+    from metrics import compute_segmentation_metrics
+
+    np.random.seed(42)
+    pred = np.random.randint(0, 5, (10, 10))
+    gt = np.random.randint(0, 5, (10, 10))
+
+    metrics = compute_segmentation_metrics(pred, gt)
+
+    assert 0 <= metrics["miou"] <= 1
+    assert len(metrics["per_class_metrics"]) == 5
+
+
+def test_compute_metrics_empty_class():
+    """测试空类别处理（某个类别在 GT 中不存在）"""
+    from metrics import compute_segmentation_metrics
+
+    pred = np.array([[0, 0], [0, 0]])  # 只有类别 0
+    gt = np.array([[0, 0], [0, 0]])
+
+    metrics = compute_segmentation_metrics(pred, gt)
+
+    # 类别0应该完全匹配（由于 eps 的存在，使用近似相等）
+    assert metrics["miou"] > 0.999
+    assert metrics["precision"] > 0.999
+    assert metrics["recall"] > 0.999
+
+
+def test_compute_metrics_class_in_pred_not_in_gt():
+    """测试类别在 pred 中存在但 GT 中不存在"""
+    from metrics import compute_segmentation_metrics
+
+    pred = np.array([[0, 1], [1, 0]])
+    gt = np.array([[0, 0], [0, 0]])  # GT 中只有类别 0
+
+    metrics = compute_segmentation_metrics(pred, gt)
+
+    # 类别1的所有指标应该为 0
+    class_1_metric = metrics["per_class_metrics"][1]
+    assert class_1_metric["class_id"] == 1
+    assert class_1_metric["precision"] == 0.0
+    assert class_1_metric["recall"] == 0.0
+    assert class_1_metric["iou"] == 0.0
+
+
+def test_compute_metrics_large_random():
+    """测试大规模随机数据"""
+    from metrics import compute_segmentation_metrics
+
+    np.random.seed(123)
+    pred = np.random.randint(0, 10, (100, 100))
+    gt = np.random.randint(0, 10, (100, 100))
+
+    metrics = compute_segmentation_metrics(pred, gt)
+
+    assert 0 <= metrics["miou"] <= 1
+    assert len(metrics["per_class_metrics"]) == 10
+
+
+def test_compute_metrics_per_class_sorted():
+    """测试 per_class_metrics 按 class_id 排序"""
+    from metrics import compute_segmentation_metrics
+
+    pred = np.array([[0, 1, 2], [1, 2, 0]])
+    gt = np.array([[0, 1, 1], [1, 2, 2]])
+
+    metrics = compute_segmentation_metrics(pred, gt)
+
+    # 验证 class_id 是升序排列
+    class_ids = [m["class_id"] for m in metrics["per_class_metrics"]]
+    assert class_ids == sorted(class_ids)
+
+
+def test_compute_metrics_shape_mismatch():
+    """测试形状不匹配异常"""
+    from metrics import compute_segmentation_metrics
+
+    pred = np.array([[0, 1]])
+    gt = np.array([[0, 1, 0]])
+
+    with pytest.raises(ValueError, match="形状不匹配"):
+        compute_segmentation_metrics(pred, gt)
+
+
+def test_compute_metrics_wrong_dimensions():
+    """测试错误维度异常"""
+    from metrics import compute_segmentation_metrics
+
+    pred = np.array([[[0], [1]], [[1], [0]]])  # 3D
+    gt = np.array([[0, 1], [1, 0]])
+
+    with pytest.raises(ValueError, match="必须是 2D 数组"):
+        compute_segmentation_metrics(pred, gt)
+
+
+def test_compute_metrics_wrong_type():
+    """测试错误类型异常"""
+    from metrics import compute_segmentation_metrics
+
+    pred = [[0, 1], [1, 0]]  # list, not ndarray
+    gt = np.array([[0, 1], [1, 0]])
+
+    with pytest.raises(TypeError, match="必须是 NumPy 数组"):
+        compute_segmentation_metrics(pred, gt)
