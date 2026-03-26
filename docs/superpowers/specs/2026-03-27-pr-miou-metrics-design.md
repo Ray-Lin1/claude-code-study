@@ -1,6 +1,6 @@
 # PR、mIoU 精度指标计算设计文档
 
-**日期**: 2025-03-27
+**日期**: 2026-03-27
 **作者**: Claude & ray
 **状态**: 已批准
 
@@ -66,13 +66,19 @@ def compute_segmentation_metrics(
 - 计算各类指标
 - 返回结果字典
 
+**参数说明**:
+- `pred`: 预测标签数组，shape (H, W)，值为类别索引
+- `gt`: 真实标签数组，shape (H, W)，值为类别索引
+- `ignore_index`: 要忽略的标签值（如边界区域），该像素不计入指标计算
+- `eps`: 防止除零的小值，默认 1e-10。通常不需要调整，仅在数值精度问题时考虑
+
 **返回值结构**:
 ```python
 {
     'precision': float,           # 平均 Precision
     'recall': float,              # 平均 Recall
     'miou': float,                # 平均 IoU
-    'per_class_metrics': [        # 每个类别的详细指标
+    'per_class_metrics': [        # 每个类别的详细指标（按 class_id 升序排列）
         {
             'class_id': int,
             'precision': float,
@@ -164,6 +170,8 @@ num_classes = max(pred.max(), gt.max()) + 1
 | 情况 | 处理方式 |
 |------|----------|
 | 空类别（GT中不存在） | 该类别所有指标为 0，计入平均 |
+| 类别在 GT 中存在但 pred 中不存在 | Precision = 0, Recall = 0, IoU = 0 |
+| 类别在 pred 中存在但 GT 中不存在 | Precision = 0, Recall = 0, IoU = 0 |
 | 全部被 ignore 的图像 | 返回 0 值，给出警告 |
 | 除零保护 | 使用 `eps=1e-10` 避免除零 |
 | 完全匹配 | mIoU = 1.0, Precision = 1.0, Recall = 1.0 |
@@ -298,7 +306,9 @@ metrics = compute_segmentation_metrics(pred, gt, ignore_index=-1)
 # -1 位置的像素会被忽略，不计入指标计算
 ```
 
-### 7.3 批量处理多张图像
+### 7.3 批量处理多张图像（可选扩展）
+
+**注意**: 这是一个扩展功能的示例，不在当前实现范围内。用户可根据需要自行实现。
 
 ```python
 def compute_batch_metrics(preds, gts, ignore_index=-1):
@@ -312,9 +322,12 @@ def compute_batch_metrics(preds, gts, ignore_index=-1):
 
     返回:
         平均指标字典
+
+    实现思路:
+        1. 累积所有图像的混淆矩阵
+        2. 基于累积的混淆矩阵计算最终指标
     """
-    # 累积所有图像的混淆矩阵
-    # ... 实现略
+    # 实现略 - 由用户根据需要自行实现
     pass
 ```
 
