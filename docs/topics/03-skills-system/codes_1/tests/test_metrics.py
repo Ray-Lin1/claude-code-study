@@ -113,3 +113,67 @@ def test_compute_confusion_matrix_multiclass():
     assert cm.shape == (5, 5)
     # 所有像素都应该被统计
     assert cm.sum() == 100  # 10x10 = 100 pixels
+
+
+# ===== 主函数测试 =====
+
+
+def test_compute_metrics_simple_case():
+    """测试简单二分类情况"""
+    from metrics import compute_segmentation_metrics
+
+    pred = np.array([[0, 1, 1], [1, 0, 0]])
+    gt = np.array([[0, 1, 0], [1, 1, 0]])
+
+    metrics = compute_segmentation_metrics(pred, gt)
+
+    # 验证返回结构
+    assert "precision" in metrics
+    assert "recall" in metrics
+    assert "miou" in metrics
+    assert "per_class_metrics" in metrics
+
+    # 验证数据类型
+    assert isinstance(metrics["precision"], float)
+    assert isinstance(metrics["recall"], float)
+    assert isinstance(metrics["miou"], float)
+    assert isinstance(metrics["per_class_metrics"], list)
+
+    # 验证值范围
+    assert 0 <= metrics["precision"] <= 1
+    assert 0 <= metrics["recall"] <= 1
+    assert 0 <= metrics["miou"] <= 1
+
+    # 验证 per_class_metrics 有 2 个类别
+    assert len(metrics["per_class_metrics"]) == 2
+    for class_metric in metrics["per_class_metrics"]:
+        assert "class_id" in class_metric
+        assert "precision" in class_metric
+        assert "recall" in class_metric
+        assert "iou" in class_metric
+
+
+def test_compute_metrics_perfect_match():
+    """测试完全匹配情况"""
+    from metrics import compute_segmentation_metrics
+
+    pred = np.array([[0, 1], [1, 0]])
+    gt = np.array([[0, 1], [1, 0]])
+
+    metrics = compute_segmentation_metrics(pred, gt)
+
+    assert metrics["miou"] > 0.999  # 由于 eps 的存在，不是精确的 1.0
+    assert metrics["precision"] > 0.999
+    assert metrics["recall"] > 0.999
+
+
+def test_compute_metrics_total_mismatch():
+    """测试完全不匹配情况"""
+    from metrics import compute_segmentation_metrics
+
+    pred = np.array([[0, 0], [0, 0]])
+    gt = np.array([[1, 1], [1, 1]])
+
+    metrics = compute_segmentation_metrics(pred, gt)
+
+    assert metrics["miou"] == 0.0

@@ -5,6 +5,8 @@
 适用于语义分割任务的模型评估。
 """
 
+from typing import Any
+
 import numpy as np
 
 __version__ = "0.1.0"
@@ -72,3 +74,76 @@ def _compute_confusion_matrix(
 
     # 重塑为矩阵
     return cm.reshape(num_classes, num_classes)
+
+
+def compute_segmentation_metrics(
+    pred: np.ndarray,
+    gt: np.ndarray,
+    ignore_index: int = -1,
+    eps: float = 1e-10,
+) -> dict[str, Any]:
+    """
+    计算语义分割的 PR、mIoU 指标
+
+    参数:
+        pred: 预测标签 (H, W)，值为类别索引
+        gt: 真实标签 (H, W)，值为类别索引
+        ignore_index: 要忽略的标签值（默认 -1）
+        eps: 防止除零的小值
+
+    返回:
+        {
+            'precision': float,      # 平均 Precision
+            'recall': float,         # 平均 Recall
+            'miou': float,           # 平均 IoU
+            'per_class_metrics': [   # 每个类别的详细指标
+                {
+                    'class_id': int,
+                    'precision': float,
+                    'recall': float,
+                    'iou': float
+                },
+                ...
+            ]
+        }
+    """
+    # 验证输入
+    _validate_inputs(pred, gt)
+
+    # 自动推断类别数
+    num_classes = max(pred.max(), gt.max()) + 1
+
+    # 计算混淆矩阵
+    cm = _compute_confusion_matrix(pred, gt, num_classes, ignore_index)
+
+    # 计算每个类别的指标
+    per_class_metrics = []
+    for i in range(num_classes):
+        tp = cm[i, i]
+        fp = cm[:, i].sum() - tp
+        fn = cm[i, :].sum() - tp
+
+        precision = tp / (tp + fp + eps)
+        recall = tp / (tp + fn + eps)
+        iou = tp / (tp + fp + fn + eps)
+
+        per_class_metrics.append(
+            {
+                "class_id": i,
+                "precision": float(precision),
+                "recall": float(recall),
+                "iou": float(iou),
+            }
+        )
+
+    # 计算平均指标
+    avg_precision = np.mean([m["precision"] for m in per_class_metrics])
+    avg_recall = np.mean([m["recall"] for m in per_class_metrics])
+    avg_iou = np.mean([m["iou"] for m in per_class_metrics])
+
+    return {
+        "precision": float(avg_precision),
+        "recall": float(avg_recall),
+        "miou": float(avg_iou),
+        "per_class_metrics": per_class_metrics,
+    }
